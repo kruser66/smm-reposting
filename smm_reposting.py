@@ -1,6 +1,7 @@
 import os
 import logging
 import telegram
+import requests
 import vk_api as vk
 from dotenv import load_dotenv
 from requests import (
@@ -34,7 +35,7 @@ def upload_photo_wall(vk_upload, filename, group_id):
     return vk_photo_url
 
 
-def post_to_public_vk(vk_api, vk_upload, group_id, filename, message):
+def post_to_vk_public(vk_api, vk_upload, group_id, filename, message):
     photo = upload_photo_wall(vk_upload, filename, group_id)
     vk_api.wall.post(
         owner_id=-group_id,
@@ -43,23 +44,47 @@ def post_to_public_vk(vk_api, vk_upload, group_id, filename, message):
     )
 
 
+def post_to_fb_group(fb_api_url, fb_token, fb_group_id, filename, message):
+    api_photo_url = f'{fb_api_url}{fb_group_id}/photos'
+
+    data = {
+        'access_token': fb_token,
+        'caption': message,
+    }
+    with open(filename, 'rb') as file:
+        files = {
+            'media': file
+        }
+        response = requests.post(api_photo_url, data=data, files=files)
+    response.raise_for_status()
+
+    return response
+
+
 if __name__ == '__main__':
-
-    load_dotenv()
-    vk_access_token = os.getenv('VK_ACCESS_TOKEN')
-    vk_group_id = int(os.getenv('VK_PUBLIC_ID'))
-
-    vk_session = vk.VkApi(token=vk_access_token)
-    vk_upload = vk.VkUpload(vk_session)
-    vk_api = vk_session.get_api()
-
-    tg_bot_token = os.getenv('TG_BOT_TOKEN')
-    tg_channel = os.getenv('TG_CHANNEL')
-
-    bot = telegram.Bot(token=tg_bot_token)
 
     logger.setLevel(logging.INFO)
     logger.addHandler(logging.StreamHandler())
+
+    load_dotenv()
+
+    # VKontakte
+    vk_access_token = os.getenv('VK_ACCESS_TOKEN')
+    vk_group_id = int(os.getenv('VK_PUBLIC_ID'))
+
+    vk_session = vk.VkApi(token=vk_access_token, api_version='5.131')
+    vk_upload = vk.VkUpload(vk_session)
+    vk_api = vk_session.get_api()
+
+    # Telegram
+    tg_bot_token = os.getenv('TG_BOT_TOKEN')
+    tg_channel = os.getenv('TG_CHANNEL')
+    bot = telegram.Bot(token=tg_bot_token)
+
+    # Facebook
+    fb_token = os.getenv('FB_TOKEN')
+    fb_group_id = os.getenv('FB_GPOUI_ID')
+    fb_api_url = ' https://graph.facebook.com/v12.0/'
 
     filename = 'images/matrix.jpg'
     message = '''В двух реальностях Нео снова придется
@@ -71,7 +96,8 @@ if __name__ == '__main__':
 
     try:
         post_to_telegram_channel(bot, tg_channel, filename, message)
-        post_to_public_vk(vk_api, vk_upload, vk_group_id, filename, message)
+        post_to_vk_public(vk_api, vk_upload, vk_group_id, filename, message)
+        post_to_fb_group(fb_api_url, fb_token, fb_group_id, filename, message)
     except (
         ReadTimeout,
         ConnectTimeout,
