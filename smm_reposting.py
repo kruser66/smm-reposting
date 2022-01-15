@@ -16,7 +16,7 @@ from requests import (
 logger = logging.getLogger('smm_logger')
 
 
-def post_to_telegram_channel(bot, channel_id, filename, message):
+def post_telegram(bot, channel_id, filename, message):
 
     with open(filename, 'rb') as file:
         bot.send_photo(chat_id=channel_id, photo=file, caption=message)
@@ -35,7 +35,7 @@ def upload_photo_wall(vk_upload, filename, group_id):
     return vk_photo_url
 
 
-def post_to_vk_public(vk_api, vk_upload, group_id, filename, message):
+def post_vkontakte(vk_api, vk_upload, group_id, filename, message):
     photo = upload_photo_wall(vk_upload, filename, group_id)
     vk_api.wall.post(
         owner_id=-group_id,
@@ -44,7 +44,7 @@ def post_to_vk_public(vk_api, vk_upload, group_id, filename, message):
     )
 
 
-def post_to_fb_group(fb_api_url, fb_token, fb_group_id, filename, message):
+def post_facebook(fb_api_url, fb_token, fb_group_id, filename, message):
     api_photo_url = f'{fb_api_url}{fb_group_id}/photos'
 
     data = {
@@ -83,9 +83,10 @@ if __name__ == '__main__':
 
     # Facebook
     fb_token = os.getenv('FB_TOKEN')
-    fb_group_id = os.getenv('FB_GPOUI_ID')
+    fb_group_id = os.getenv('FB_GPOUP_ID')
     fb_api_url = ' https://graph.facebook.com/v12.0/'
 
+    # пример изображения и текста к нему
     filename = 'images/matrix.jpg'
     message = '''В двух реальностях Нео снова придется
 выбирать, следовать ли за белым кроликом.
@@ -95,9 +96,9 @@ if __name__ == '__main__':
 '''
 
     try:
-        post_to_telegram_channel(bot, tg_channel, filename, message)
-        post_to_vk_public(vk_api, vk_upload, vk_group_id, filename, message)
-        post_to_fb_group(fb_api_url, fb_token, fb_group_id, filename, message)
+        post_telegram(bot, tg_channel, filename, message)
+        post_vkontakte(vk_api, vk_upload, vk_group_id, filename, message)
+        post_facebook(fb_api_url, fb_token, fb_group_id, filename, message)
     except (
         ReadTimeout,
         ConnectTimeout,
