@@ -2,15 +2,9 @@ import os
 import logging
 import telegram
 import requests
+import argparse
 import vk_api as vk
 from dotenv import load_dotenv
-from requests import (
-    ReadTimeout,
-    ConnectTimeout,
-    HTTPError,
-    Timeout,
-    ConnectionError
-)
 
 
 logger = logging.getLogger('smm_logger')
@@ -61,10 +55,27 @@ def post_facebook(fb_api_url, fb_token, fb_group_id, filename, message):
     return response
 
 
+def create_parser():
+    parser = argparse.ArgumentParser(
+        description='Определяем победителя конкурса в Инстаграмм'
+    )
+    parser.add_argument(
+        'image',
+        nargs='+',
+        help='Файл с картинкой для поста'
+    )
+    parser.add_argument('text', nargs='+', help='Текст для поста')
+
+    return parser
+
+
 if __name__ == '__main__':
 
     logger.setLevel(logging.INFO)
     logger.addHandler(logging.StreamHandler())
+
+    parser = create_parser()
+    args = parser.parse_args()
 
     load_dotenv()
 
@@ -86,24 +97,15 @@ if __name__ == '__main__':
     fb_group_id = os.getenv('FB_GPOUP_ID')
     fb_api_url = ' https://graph.facebook.com/v12.0/'
 
-    # пример изображения и текста к нему
-    filename = 'images/matrix.jpg'
-    message = '''В двух реальностях Нео снова придется
-выбирать, следовать ли за белым кроликом.
-Выбор, пусть и иллюзорный, все еще
-остается единственным путем в Матрицу
-или из нее, что более опасно, чем когда-либо.
-'''
+    filename = args.image[0]
+    message = args.text[0]
 
-    try:
+    print(args)
+    print(filename, message)
+
+    if os.path.exists(filename):
         post_telegram(bot, tg_channel, filename, message)
         post_vkontakte(vk_api, vk_upload, vk_group_id, filename, message)
         post_facebook(fb_api_url, fb_token, fb_group_id, filename, message)
-    except (
-        ReadTimeout,
-        ConnectTimeout,
-        HTTPError,
-        Timeout,
-        ConnectionError
-    ) as error:
-        logger.exception(f'Ошибка в запросе: {error}')
+    else:
+        logger.error(f'Файл {filename} не существует. Проверьте параметры!')
