@@ -14,6 +14,7 @@ def post_telegram(bot, channel_id, filename, message):
 
     with open(filename, 'rb') as file:
         bot.send_photo(chat_id=channel_id, photo=file, caption=message)
+    logger.info('Опубликован пост в Телеграм')
 
 
 def upload_photo_wall(vk_upload, filename, group_id):
@@ -36,6 +37,7 @@ def post_vkontakte(vk_api, vk_upload, group_id, filename, message):
         message=message,
         attachments=photo
     )
+    logger.info('Опубликован пост в ВКонтакте')
 
 
 def post_facebook(fb_api_url, fb_token, fb_group_id, filename, message):
@@ -51,6 +53,8 @@ def post_facebook(fb_api_url, fb_token, fb_group_id, filename, message):
         }
         response = requests.post(api_photo_url, data=data, files=files)
     response.raise_for_status()
+
+    logger.info('Опубликован пост в Facebook')
 
     return response
 
