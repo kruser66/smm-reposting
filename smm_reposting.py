@@ -61,10 +61,9 @@ def create_parser():
     )
     parser.add_argument(
         'image',
-        nargs='+',
         help='Файл с картинкой для поста'
     )
-    parser.add_argument('text', nargs='+', help='Текст для поста')
+    parser.add_argument('text', help='Текст для поста')
 
     return parser
 
@@ -97,11 +96,8 @@ if __name__ == '__main__':
     fb_group_id = os.getenv('FB_GPOUP_ID')
     fb_api_url = ' https://graph.facebook.com/v12.0/'
 
-    filename = args.image[0]
-    message = args.text[0]
-
-    print(args)
-    print(filename, message)
+    filename = args.image
+    message = args.text
 
     if os.path.exists(filename):
         post_telegram(bot, tg_channel, filename, message)
