@@ -61,7 +61,7 @@ def post_facebook(fb_api_url, fb_token, fb_group_id, filename, message):
 
 def create_parser():
     parser = argparse.ArgumentParser(
-        description='Определяем победителя конкурса в Инстаграмм'
+        description='Одновременный постинг в ВКонтакте, Фейсбук и Телеграм'
     )
     parser.add_argument(
         'image',
